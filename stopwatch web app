@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stopwatch Application - ProDigy InfoTech</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            min-width: 400px;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .display {
+            font-size: 4rem;
+            font-weight: 300;
+            color: #333;
+            margin: 40px 0;
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            letter-spacing: 2px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            min-width: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .pause-btn {
+            background: linear-gradient(45deg, #ffc107, #fd7e14);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .pause-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #dc3545, #e83e8c);
+            color: white;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .lap-btn {
+            background: linear-gradient(45deg, #007bff, #6f42c1);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .lap-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .lap-times {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .lap-times::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .lap-times::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .lap-times::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .lap-times::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .lap-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        .lap-item:last-child {
+            border-bottom: none;
+        }
+
+        .lap-item:nth-child(odd) {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .lap-header {
+            font-weight: bold;
+            color: #495057;
+            padding: 15px 20px;
+            border-bottom: 2px solid #dee2e6;
+            background: rgba(108, 117, 125, 0.1);
+        }
+
+        .running {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+                min-width: 350px;
+            }
+            
+            .display {
+                font-size: 3rem;
+                padding: 15px;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            button {
+                padding: 10px 20px;
+                min-width: 80px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stopwatch</h1>
+        <p class="subtitle">ProDigy InfoTech - Task 02</p>
+        
+        <div class="display" id="display">00:00:00</div>
+        
+        <div class="controls">
+            <button class="start-btn" id="startBtn" onclick="startStopwatch()">Start</button>
+            <button class="pause-btn" id="pauseBtn" onclick="pauseStopwatch()" disabled>Pause</button>
+            <button class="reset-btn" id="resetBtn" onclick="resetStopwatch()">Reset</button>
+            <button class="lap-btn" id="lapBtn" onclick="recordLap()" disabled>Lap</button>
+        </div>
+        
+        <div class="lap-times" id="lapTimes" style="display: none;">
+            <div class="lap-header">Lap Times</div>
+        </div>
+    </div>
+
+    <script>
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        let isRunning = false;
+        let lapCount = 0;
+
+        const display = document.getElementById('display');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const lapBtn = document.getElementById('lapBtn');
+        const lapTimes = document.getElementById('lapTimes');
+
+        function formatTime(milliseconds) {
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const ms = Math.floor((milliseconds % 1000) / 10);
+
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${ms.toString().padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            const currentTime = Date.now();
+            elapsedTime = currentTime - startTime;
+            display.textContent = formatTime(elapsedTime);
+        }
+
+        function startStopwatch() {
+            if (!isRunning) {
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(updateDisplay, 10);
+                isRunning = true;
+
+                startBtn.textContent = 'Running...';
+                startBtn.disabled = true;
+                startBtn.classList.add('running');
+                pauseBtn.disabled = false;
+                lapBtn.disabled = false;
+            }
+        }
+
+        function pauseStopwatch() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+
+                startBtn.textContent = 'Resume';
+                startBtn.disabled = false;
+                startBtn.classList.remove('running');
+                pauseBtn.disabled = true;
+                lapBtn.disabled = true;
+            }
+        }
+
+        function resetStopwatch() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            elapsedTime = 0;
+            lapCount = 0;
+
+            display.textContent = '00:00:00';
+            
+            startBtn.textContent = 'Start';
+            startBtn.disabled = false;
+            startBtn.classList.remove('running');
+            pauseBtn.disabled = true;
+            lapBtn.disabled = true;
+
+            // Clear lap times
+            lapTimes.style.display = 'none';
+            lapTimes.innerHTML = '<div class="lap-header">Lap Times</div>';
+        }
+
+        function recordLap() {
+            if (isRunning) {
+                lapCount++;
+                const lapTime = formatTime(elapsedTime);
+                
+                if (lapTimes.style.display === 'none') {
+                    lapTimes.style.display = 'block';
+                }
+
+                const lapItem = document.createElement('div');
+                lapItem.className = 'lap-item';
+                lapItem.innerHTML = `
+                    <span>Lap ${lapCount}</span>
+                    <span>${lapTime}</span>
+                `;
+                
+                lapTimes.appendChild(lapItem);
+                lapTimes.scrollTop = lapTimes.scrollHeight;
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            switch(event.code) {
+                case 'Space':
+                    event.preventDefault();
+                    if (!isRunning) {
+                        startStopwatch();
+                    } else {
+                        pauseStopwatch();
+                    }
+                    break;
+                case 'KeyR':
+                    event.preventDefault();
+                    resetStopwatch();
+                    break;
+                case 'KeyL':
+                    event.preventDefault();
+                    if (isRunning) {
+                        recordLap();
+                    }
+                    break;
+            }
+        });
+
+        // Initialize display
+        display.textContent = '00:00:00';
+    </script>
+</body>
+</html>
